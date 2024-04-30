@@ -1,10 +1,10 @@
 import pandas as pd
 
-def subset_csv(input_file, output_file, fraction=0.1):
+def subset_csv(input_file, output_file, fraction=0.01):
     df = pd.read_csv(input_file)
 
     # Randomly sample the fraction of rows
-    subset_df = df.sample(frac=fraction, random_state=1)  # random_state ensures reproducibility
+    subset_df = df.sample(frac=fraction, random_state=69)  # random_state ensures reproducibility
 
     # Save the subset to a new CSV file
     subset_df.to_csv(output_file, index=False)
