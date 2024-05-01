@@ -22,7 +22,7 @@ def build_model(bert_model, learning_rate=5e-5):
     model.compile(optimizer=Adam(learning_rate=learning_rate), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     return model
 
-def train_model(input_ids, attention_masks, y, model, batch_size=32, epochs=10):
+def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10): # Lower batch size if you want to speed up training
     # Ensure the data is in TensorFlow tensor format, if not convert it
     if not isinstance(input_ids, tf.Tensor):
         input_ids = tf.convert_to_tensor(input_ids.values, dtype=tf.int32)
