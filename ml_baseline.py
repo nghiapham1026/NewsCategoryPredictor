@@ -18,7 +18,7 @@ def train_baseline_model(X, y):
     print(classification_report(y_test, y_pred))
 
 def main():
-    file_path = './uci-news-aggregator_small.csv'
+    file_path = './uci-news-aggregator.csv'
     data = preprocess.load_data(file_path)
     data = preprocess.clean_missing_values(data)
     data = preprocess.normalize_text(data)
@@ -30,3 +30,15 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+'''Baseline Model Performance:
+              precision    recall  f1-score   support
+
+           b       0.92      0.93      0.92     23414
+           e       0.96      0.98      0.97     30353
+           m       0.96      0.91      0.94      9024
+           t       0.93      0.93      0.93     21693
+
+    accuracy                           0.94     84484
+   macro avg       0.94      0.94      0.94     84484
+weighted avg       0.94      0.94      0.94     84484'''
