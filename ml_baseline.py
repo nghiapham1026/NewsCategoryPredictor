@@ -100,4 +100,19 @@ Best Parameters: {'max_depth': None, 'min_samples_leaf': 1}
 weighted avg       0.88      0.88      0.88     84484
 
 --------------------------------------------------
+
+Support Vector Machine Model Performance (Grid Search):
+Best Parameters: {'clf__C': 0.1}
+              precision    recall  f1-score   support
+
+           b       0.76      0.83      0.79       222
+           e       0.87      0.91      0.89       307
+           m       0.91      0.66      0.76        90
+           t       0.78      0.75      0.76       226
+
+    accuracy                           0.82       845
+   macro avg       0.83      0.78      0.80       845
+weighted avg       0.82      0.82      0.82       845
+
+--------------------------------------------------
 '''
