@@ -1,7 +1,59 @@
-# NewsCategoryPredictor
-CS 171 Final Project - Machine Learning Model that can Predict News Categories Based on Content
+# News Article Classification Project
 
-To start training, run:
-```{bash}
-python ml.py
+This project involves building and comparing machine learning models to classify news articles into categories such as business, technology, entertainment, and health. The project includes scripts for data exploration, preprocessing, baseline model training, hyperparameter tuning, and advanced model training using a CNN with BERT.
+
+## Project Structure
+
+- `exploration.py`: Script for exploring and analyzing the dataset.
+- `ml_baseline.py`: Script for training baseline machine learning models and tuning them using grid search.
+- `ml_cnn.py`: Script for building and training a CNN model integrated with BERT for advanced text classification **(VERY INTENSIVE)**.
+- `preprocess.py`: Utility script for data preprocessing including text normalization and feature extraction.
+- `subset.py`: Utility script to create a smaller subset of the dataset for quicker training.
+
+## Setup and Usage
+
+### Dependencies
+
+- Python 3.8+
+- Pandas
+- Scikit-learn
+- TensorFlow
+- Transformers (Hugging Face)
+
+To install the necessary libraries, run:
+```bash
+pip install pandas scikit-learn tensorflow transformers
 ```
+
+### Running the Scripts
+
+1. **Preprocessing**:
+   Simply import the `preprocess.py` module in other scripts as needed for data cleaning and feature extraction tasks.
+
+2. **Creating a Data Subset**:
+   ```bash
+   python subset.py
+   ```
+   Use this script to generate a smaller subset of the dataset for development and testing.
+
+3. **Data Exploration**:
+   ```bash
+   python exploration.py
+   ```
+   This script will load the data, display initial statistics, and perform category and publisher analyses.
+
+4. **Baseline Models**:
+   ```bash
+   python ml_baseline.py
+   ```
+   Trains Logistic Regression, Decision Tree, and SVM models. It includes hyperparameter tuning with grid search.
+
+5. **CNN with BERT Model**:
+   ```bash
+   python ml_cnn.py
+   ```
+   Trains a deep learning model using Convolutional Neural Networks and BERT for text classification. This model is very taxing on your CPU!
+
+## Data
+
+Data used in this project is the UCI News Aggregator dataset which consists of summaries of news articles, categorized into different types like business, technology, and more.

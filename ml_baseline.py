@@ -69,3 +69,35 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+'''
+Logistic Regression Model Performance (Grid Search):
+Best Parameters: {'C': 10, 'solver': 'liblinear'}
+              precision    recall  f1-score   support
+
+           b       0.93      0.93      0.93     23414
+           e       0.98      0.98      0.98     30353
+           m       0.96      0.94      0.95      9024
+           t       0.93      0.93      0.93     21693
+
+    accuracy                           0.95     84484
+   macro avg       0.95      0.95      0.95     84484
+weighted avg       0.95      0.95      0.95     84484
+
+--------------------------------------------------
+
+Decision Tree Model Performance (Grid Search):
+Best Parameters: {'max_depth': None, 'min_samples_leaf': 1}
+              precision    recall  f1-score   support
+
+           b       0.86      0.87      0.86     23414
+           e       0.91      0.93      0.92     30353
+           m       0.86      0.82      0.84      9024
+           t       0.88      0.86      0.87     21693
+
+    accuracy                           0.88     84484
+   macro avg       0.88      0.87      0.87     84484
+weighted avg       0.88      0.88      0.88     84484
+
+--------------------------------------------------
+'''
