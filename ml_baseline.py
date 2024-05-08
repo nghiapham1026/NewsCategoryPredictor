@@ -1,23 +1,20 @@
 import preprocess
-import matplotlib.pyplot as plt
+import plot_metrics
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, roc_curve, auc, precision_recall_curve, average_precision_score
+from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler, label_binarize
 from sklearn.pipeline import Pipeline
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.exceptions import UndefinedMetricWarning
 import numpy as np
-import warnings
 
 def train_and_tune_models(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model_scores = {}
     classes = np.unique(y)
     y_test_binarized = label_binarize(y_test, classes=classes)
+    model_scores = {}
 
     # Models and their hyperparameters for tuning
     models = {
@@ -25,37 +22,34 @@ def train_and_tune_models(X, y):
             'pipeline': Pipeline([
                 ('vect', TfidfVectorizer()),
                 ('scaler', StandardScaler(with_mean=False)),  # Using StandardScaler to scale data
-                ('clf', OneVsRestClassifier(LogisticRegression(max_iter=1000)))
+                ('clf', LogisticRegression(max_iter=1000))    # Increased max_iter
             ]),
             'params': {
-                'clf__estimator__C': [0.1, 1, 10, 100],
-                'clf__estimator__solver': ['liblinear', 'lbfgs']  # Limiting to solvers that support OvR
+                'clf__C': [0.1, 1, 10, 100],
+                'clf__solver': ['liblinear', 'lbfgs', 'sag', 'saga']  # Exploring different solvers
             }
         },
         'Decision Tree': {
             'pipeline': Pipeline([
                 ('vect', TfidfVectorizer()),
-                ('clf', OneVsRestClassifier(DecisionTreeClassifier()))
+                ('clf', DecisionTreeClassifier())
             ]),
             'params': {
-                'clf__estimator__max_depth': [None, 10, 20, 30],
-                'clf__estimator__min_samples_leaf': [1, 2, 4]
+                'clf__max_depth': [None, 10, 20, 30],
+                'clf__min_samples_leaf': [1, 2, 4]
             }
         },
         'Support Vector Machine': {
             'pipeline': Pipeline([
                 ('vect', TfidfVectorizer()),
                 ('scaler', StandardScaler(with_mean=False)),  # Scaling for SVM
-                ('clf', OneVsRestClassifier(SVC(kernel='linear', probability=True)))
+                ('clf', SVC(kernel='linear', probability=True))
             ]),
             'params': {
-                'clf__estimator__C': [0.1, 1, 10, 100]
+                'clf__C': [0.1, 1, 10, 100]
             }
         }
     }
-
-    # Handling warning for undefined metric in some edge cases
-    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
     # Training and hyperparameter tuning
     for name, info in models.items():
@@ -65,38 +59,9 @@ def train_and_tune_models(X, y):
         y_pred_proba = grid_search.predict_proba(X_test)
         model_scores[name] = grid_search.best_score_
 
-        # ROC and Precision-Recall
-        fpr = dict()
-        tpr = dict()
-        roc_auc = dict()
-        precision = dict()
-        recall = dict()
-        pr_auc = dict()
-
-        for i, label in enumerate(classes):
-            fpr[label], tpr[label], _ = roc_curve(y_test_binarized[:, i], y_pred_proba[:, i])
-            roc_auc[label] = auc(fpr[label], tpr[label])
-            precision[label], recall[label], _ = precision_recall_curve(y_test_binarized[:, i], y_pred_proba[:, i])
-            pr_auc[label] = average_precision_score(y_test_binarized[:, i], y_pred_proba[:, i])
-
-        # Plot ROC and Precision-Recall for each class
-        plt.figure(figsize=(12, 6))
-        for label in classes:
-            plt.plot(fpr[label], tpr[label], linestyle='--', label=f'{name} ROC curve (area = {roc_auc[label]:.2f}) for class {label}')
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title(f'ROC Curves for {name}')
-        plt.legend(loc="lower right")
-        plt.show()
-
-        plt.figure(figsize=(12, 6))
-        for label in classes:
-            plt.plot(recall[label], precision[label], linestyle='--', label=f'{name} Precision-Recall curve (area = {pr_auc[label]:.2f}) for class {label}')
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.title(f'Precision-Recall Curves for {name}')
-        plt.legend(loc="lower left")
-        plt.show()
+        # Call to plot_metrics
+        plot_metrics.plot_roc_curves(classes, y_test_binarized, y_pred_proba)
+        plot_metrics.plot_precision_recall_curves(classes, y_test_binarized, y_pred_proba)
 
         print(f"{name} Model Performance (Grid Search):")
         print("Best Parameters:", grid_search.best_params_)
