@@ -1,15 +1,23 @@
 import preprocess
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report
-from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, roc_curve, auc, precision_recall_curve, average_precision_score
+from sklearn.preprocessing import StandardScaler, label_binarize
 from sklearn.pipeline import Pipeline
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.exceptions import UndefinedMetricWarning
+import numpy as np
+import warnings
 
 def train_and_tune_models(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model_scores = {}
+    classes = np.unique(y)
+    y_test_binarized = label_binarize(y_test, classes=classes)
 
     # Models and their hyperparameters for tuning
     models = {
@@ -17,40 +25,79 @@ def train_and_tune_models(X, y):
             'pipeline': Pipeline([
                 ('vect', TfidfVectorizer()),
                 ('scaler', StandardScaler(with_mean=False)),  # Using StandardScaler to scale data
-                ('clf', LogisticRegression(max_iter=1000))    # Increased max_iter
+                ('clf', OneVsRestClassifier(LogisticRegression(max_iter=1000)))
             ]),
             'params': {
-                'clf__C': [0.1, 1, 10, 100],
-                'clf__solver': ['liblinear', 'lbfgs', 'sag', 'saga']  # Exploring different solvers
+                'clf__estimator__C': [0.1, 1, 10, 100],
+                'clf__estimator__solver': ['liblinear', 'lbfgs']  # Limiting to solvers that support OvR
             }
         },
         'Decision Tree': {
             'pipeline': Pipeline([
                 ('vect', TfidfVectorizer()),
-                ('clf', DecisionTreeClassifier())
+                ('clf', OneVsRestClassifier(DecisionTreeClassifier()))
             ]),
             'params': {
-                'clf__max_depth': [None, 10, 20, 30],
-                'clf__min_samples_leaf': [1, 2, 4]
+                'clf__estimator__max_depth': [None, 10, 20, 30],
+                'clf__estimator__min_samples_leaf': [1, 2, 4]
             }
         },
         'Support Vector Machine': {
             'pipeline': Pipeline([
                 ('vect', TfidfVectorizer()),
                 ('scaler', StandardScaler(with_mean=False)),  # Scaling for SVM
-                ('clf', SVC(kernel='linear'))
+                ('clf', OneVsRestClassifier(SVC(kernel='linear', probability=True)))
             ]),
             'params': {
-                'clf__C': [0.1, 1, 10, 100]
+                'clf__estimator__C': [0.1, 1, 10, 100]
             }
         }
     }
+
+    # Handling warning for undefined metric in some edge cases
+    warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
     # Training and hyperparameter tuning
     for name, info in models.items():
         grid_search = GridSearchCV(info['pipeline'], info['params'], cv=3, scoring='accuracy')
         grid_search.fit(X_train, y_train)
         y_pred = grid_search.predict(X_test)
+        y_pred_proba = grid_search.predict_proba(X_test)
+        model_scores[name] = grid_search.best_score_
+
+        # ROC and Precision-Recall
+        fpr = dict()
+        tpr = dict()
+        roc_auc = dict()
+        precision = dict()
+        recall = dict()
+        pr_auc = dict()
+
+        for i, label in enumerate(classes):
+            fpr[label], tpr[label], _ = roc_curve(y_test_binarized[:, i], y_pred_proba[:, i])
+            roc_auc[label] = auc(fpr[label], tpr[label])
+            precision[label], recall[label], _ = precision_recall_curve(y_test_binarized[:, i], y_pred_proba[:, i])
+            pr_auc[label] = average_precision_score(y_test_binarized[:, i], y_pred_proba[:, i])
+
+        # Plot ROC and Precision-Recall for each class
+        plt.figure(figsize=(12, 6))
+        for label in classes:
+            plt.plot(fpr[label], tpr[label], linestyle='--', label=f'{name} ROC curve (area = {roc_auc[label]:.2f}) for class {label}')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'ROC Curves for {name}')
+        plt.legend(loc="lower right")
+        plt.show()
+
+        plt.figure(figsize=(12, 6))
+        for label in classes:
+            plt.plot(recall[label], precision[label], linestyle='--', label=f'{name} Precision-Recall curve (area = {pr_auc[label]:.2f}) for class {label}')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.title(f'Precision-Recall Curves for {name}')
+        plt.legend(loc="lower left")
+        plt.show()
+
         print(f"{name} Model Performance (Grid Search):")
         print("Best Parameters:", grid_search.best_params_)
         print(classification_report(y_test, y_pred))
@@ -69,50 +116,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-'''
-Logistic Regression Model Performance (Grid Search):
-Best Parameters: {'C': 10, 'solver': 'liblinear'}
-              precision    recall  f1-score   support
-
-           b       0.93      0.93      0.93     23414
-           e       0.98      0.98      0.98     30353
-           m       0.96      0.94      0.95      9024
-           t       0.93      0.93      0.93     21693
-
-    accuracy                           0.95     84484
-   macro avg       0.95      0.95      0.95     84484
-weighted avg       0.95      0.95      0.95     84484
-
---------------------------------------------------
-
-Decision Tree Model Performance (Grid Search):
-Best Parameters: {'max_depth': None, 'min_samples_leaf': 1}
-              precision    recall  f1-score   support
-
-           b       0.86      0.87      0.86     23414
-           e       0.91      0.93      0.92     30353
-           m       0.86      0.82      0.84      9024
-           t       0.88      0.86      0.87     21693
-
-    accuracy                           0.88     84484
-   macro avg       0.88      0.87      0.87     84484
-weighted avg       0.88      0.88      0.88     84484
-
---------------------------------------------------
-
-Support Vector Machine Model Performance (Grid Search):
-Best Parameters: {'clf__C': 0.1}
-              precision    recall  f1-score   support
-
-           b       0.76      0.83      0.79       222
-           e       0.87      0.91      0.89       307
-           m       0.91      0.66      0.76        90
-           t       0.78      0.75      0.76       226
-
-    accuracy                           0.82       845
-   macro avg       0.83      0.78      0.80       845
-weighted avg       0.82      0.82      0.82       845
-
---------------------------------------------------
-'''
