@@ -57,11 +57,10 @@ def train_and_tune_models(X, y):
         grid_search.fit(X_train, y_train)
         y_pred = grid_search.predict(X_test)
         y_pred_proba = grid_search.predict_proba(X_test)
-        model_scores[name] = grid_search.best_score_
 
-        # Call to plot_metrics
-        plot_metrics.plot_roc_curves(classes, y_test_binarized, y_pred_proba)
-        plot_metrics.plot_precision_recall_curves(classes, y_test_binarized, y_pred_proba)
+        # Call to plot_metrics with model name
+        plot_metrics.plot_roc_curves(name, classes, y_test_binarized, y_pred_proba)
+        plot_metrics.plot_precision_recall_curves(name, classes, y_test_binarized, y_pred_proba)
 
         print(f"{name} Model Performance (Grid Search):")
         print("Best Parameters:", grid_search.best_params_)

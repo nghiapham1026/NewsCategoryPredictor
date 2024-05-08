@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score
 
-def plot_roc_curves(classes, y_test_binarized, y_pred_proba):
+def plot_roc_curves(model_name, classes, y_test_binarized, y_pred_proba):
     fpr = dict()
     tpr = dict()
     roc_auc = dict()
@@ -15,11 +15,11 @@ def plot_roc_curves(classes, y_test_binarized, y_pred_proba):
         plt.plot(fpr[label], tpr[label], linestyle='--', label=f'ROC curve (area = {roc_auc[label]:.2f}) for class {label}')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves by Class')
+    plt.title(f'ROC Curves by Class - {model_name}')
     plt.legend(loc="lower right")
     plt.show()
 
-def plot_precision_recall_curves(classes, y_test_binarized, y_pred_proba):
+def plot_precision_recall_curves(model_name, classes, y_test_binarized, y_pred_proba):
     precision = dict()
     recall = dict()
     pr_auc = dict()
@@ -33,6 +33,6 @@ def plot_precision_recall_curves(classes, y_test_binarized, y_pred_proba):
         plt.plot(recall[label], precision[label], linestyle='--', label=f'Precision-Recall curve (area = {pr_auc[label]:.2f}) for class {label}')
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.title('Precision-Recall Curves by Class')
+    plt.title(f'Precision-Recall Curves by Class - {model_name}')
     plt.legend(loc="lower left")
     plt.show()
