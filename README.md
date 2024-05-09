@@ -9,6 +9,8 @@ This project involves building and comparing machine learning models to classify
 - `ml_cnn.py`: Script for building and training a CNN model integrated with BERT for advanced text classification **(VERY INTENSIVE)**.
 - `preprocess.py`: Utility script for data preprocessing including text normalization and feature extraction.
 - `subset.py`: Utility script to create a smaller subset of the dataset for quicker training.
+- `plot_metrics.py`: Functions to plot ROC and Precision-Recall curves for a classification model.
+- `cnn_plot.py`: Plots to visualize training and validation metrics (accuracy and loss) across epochs for model.
 
 ## Setup and Usage
 
