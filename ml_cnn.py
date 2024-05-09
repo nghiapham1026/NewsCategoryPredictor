@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import preprocess
 from sklearn.model_selection import train_test_split
-from transformers import BertTokenizer, TFBertModel
+from transformers import BertTokenizer, TFBertModel, DistilBertTokenizer, TFDistilBertModel
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
@@ -12,14 +12,29 @@ def prepare_data(X, tokenizer, max_length=512):
     return encodings['input_ids'], encodings['attention_mask']
 
 def build_model(bert_model, learning_rate=5e-5):
+    # Define input layers
     input_ids = tf.keras.layers.Input(shape=(512,), dtype=tf.int32, name="input_ids")
     attention_masks = tf.keras.layers.Input(shape=(512,), dtype=tf.int32, name="attention_mask")
-    bert_output = bert_model(input_ids, attention_mask=attention_masks)[1]
-    dense = tf.keras.layers.Dense(256, activation='relu')(bert_output)
+    
+    # Lambda to convert Keras tensors to TensorFlow tensors and specify output shape
+    bert_output = tf.keras.layers.Lambda(
+        lambda x: bert_model(x[0], attention_mask=x[1])[0],
+        output_shape=(512, 768)  # This needs to be set to the output dimensions of the BERT model
+    )([input_ids, attention_masks])
+
+    # Extract the [CLS] token's output for classification tasks
+    cls_token = tf.keras.layers.Lambda(lambda x: x[:, 0], output_shape=(768,))(bert_output)
+    
+    # Additional layers on top
+    dense = tf.keras.layers.Dense(256, activation='relu')(cls_token)
     dropout = tf.keras.layers.Dropout(0.3)(dense)
     output = tf.keras.layers.Dense(4, activation='softmax')(dropout)
+    
+    # Construct the model
     model = tf.keras.Model(inputs=[input_ids, attention_masks], outputs=output)
-    model.compile(optimizer=Adam(learning_rate=learning_rate), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(learning_rate=learning_rate), 
+                  loss='sparse_categorical_crossentropy', 
+                  metrics=['accuracy'])
     return model
 
 def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10): # Lower batch size if you want to speed up training
@@ -64,11 +79,11 @@ def main():
     data = preprocess.normalize_text(data)
     data = preprocess.extract_url_features(data)
     
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
     input_ids, attention_masks = prepare_data(data['TITLE'], tokenizer)
     y = data['CATEGORY'].astype('category').cat.codes
 
-    bert_model = TFBertModel.from_pretrained('bert-base-uncased')
+    bert_model = TFDistilBertModel.from_pretrained('distilbert-base-uncased')
     model = build_model(bert_model)
     train_model(input_ids, attention_masks, y, model)
 
