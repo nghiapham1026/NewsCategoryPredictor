@@ -17,7 +17,7 @@ def clean_missing_values(data):
     return data
 
 def normalize_text(text):
-    text = text.lower()
+    text = str(text).lower()  # Ensure text is converted to string
     text = re.sub(r'\W+', ' ', text) 
     text = text.strip()
     return text
