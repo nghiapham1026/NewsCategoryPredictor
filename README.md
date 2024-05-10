@@ -1,6 +1,6 @@
 # News Article Classification Project
 
-This project involves building and comparing machine learning models to classify news articles into categories such as business, technology, entertainment, and health. The project includes scripts for data exploration, preprocessing, baseline model training, hyperparameter tuning, and advanced model training using a CNN with BERT.
+This project involves building and comparing machine learning models to classify news articles into categories such as business, technology, entertainment, and health. The project includes scripts for data exploration, preprocessing, baseline model training, hyperparameter tuning, and advanced model training using a CNN and BERT.
 
 ## Project Structure
 
@@ -30,7 +30,7 @@ pip install pandas scikit-learn tensorflow transformers
 ### Running the Scripts
 
 1. **Preprocessing**:
-   Simply import the `preprocess.py` module in other scripts as needed for data cleaning and feature extraction tasks.
+   Simply import the `preprocess.py` module in other scripts as needed for data cleaning and feature extraction tasks. Import the `plot_metrics.py` module to plot ROC and Precision-Recall Curve for your model.
 
 2. **Creating a Data Subset**:
    ```bash
@@ -50,9 +50,15 @@ pip install pandas scikit-learn tensorflow transformers
    ```
    Trains Logistic Regression, Decision Tree, and SVM models. It includes hyperparameter tuning with grid search.
 
-5. **CNN with BERT Model**:
+5. **CNN Model Standalone**:
    ```bash
    python ml_cnn.py
+   ```
+   Trains a deep learning model using Convolutional Neural Networks without BERT.
+
+6. **CNN with BERT Model**:
+   ```bash
+   python ml_bert.py
    ```
    Trains a deep learning model using Convolutional Neural Networks and BERT for text classification. This model is very taxing on your CPU!
 
