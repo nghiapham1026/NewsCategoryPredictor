@@ -4,7 +4,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, Conv1D, GlobalMaxPooling1D, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
-import preprocess
+import preprocess_cnn
 import plot_metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
@@ -46,6 +46,8 @@ def build_model(input_length):
     )
     return model
 
+from sklearn.metrics import confusion_matrix
+
 def train_model(X, y, input_length):
     # Convert labels to categorical as needed by sklearn's label_binarize
     classes = np.unique(y)
@@ -71,16 +73,25 @@ def train_model(X, y, input_length):
     loss, accuracy = model.evaluate(X_test, y_test)
     print(f"Test Loss: {loss}, Test Accuracy: {accuracy}")
 
-    # Generate predictions for plotting
+    # Generate predictions for plotting and confusion matrix
     y_pred_proba = model.predict(X_test)
+    y_pred_classes = np.argmax(y_pred_proba, axis=1)  # Convert probabilities to class labels
+    y_test_classes = np.argmax(y_test, axis=1)  # Convert one-hot encoded labels back to class labels for compatibility
+
+    # Computing the confusion matrix
+    cm = confusion_matrix(y_test_classes, y_pred_classes)
+    print("\nConfusion Matrix:")
+    print(cm)
+
+    # Optionally plot ROC and Precision-Recall curves
     plot_metrics.plot_roc_curves("CNN Model", classes, y_test, y_pred_proba)
     plot_metrics.plot_precision_recall_curves("CNN Model", classes, y_test, y_pred_proba)
 
 def main():
     file_path = './uci-news-aggregator_small.csv'
-    data = preprocess.load_data(file_path)
-    data = preprocess.clean_missing_values(data)
-    data['TITLE'] = data['TITLE'].apply(preprocess.normalize_text)
+    data = preprocess_cnn.load_data(file_path)
+    data = preprocess_cnn.clean_missing_values(data)
+    data['TITLE'] = data['TITLE'].apply(preprocess_cnn.normalize_text)
     
     X, word_index = prepare_data(data['TITLE'])
     y = data['CATEGORY'].astype('category').cat.codes
@@ -91,3 +102,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+'''
+Confusion Matrix:
+[[180  12  15  15]
+ [  9 270  17  11]
+ [ 16   7  61   6]
+ [ 28  10  11 177]]
+'''

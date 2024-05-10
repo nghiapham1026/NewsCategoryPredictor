@@ -1,12 +1,11 @@
 import numpy as np
 import tensorflow as tf
 import preprocess
-import plot_metrics
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import label_binarize
-from transformers import DistilBertTokenizer, TFDistilBertModel
+from transformers import BertTokenizer, TFBertModel, DistilBertTokenizer, TFDistilBertModel
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
+from sklearn.metrics import confusion_matrix
 
 def prepare_data(X, tokenizer, max_length=512):
     # Tokenizing the text data
@@ -21,7 +20,7 @@ def build_model(bert_model, learning_rate=5e-5):
     # Lambda to convert Keras tensors to TensorFlow tensors and specify output shape
     bert_output = tf.keras.layers.Lambda(
         lambda x: bert_model(x[0], attention_mask=x[1])[0],
-        output_shape=(512, 768)
+        output_shape=(512, 768)  # This needs to be set to the output dimensions of the BERT model
     )([input_ids, attention_masks])
 
     # Extract the [CLS] token's output for classification tasks
@@ -39,19 +38,27 @@ def build_model(bert_model, learning_rate=5e-5):
                   metrics=['accuracy'])
     return model
 
-def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10):
-    # Ensure the data is in TensorFlow tensor format
-    input_ids = tf.convert_to_tensor(input_ids, dtype=tf.int32)
-    attention_masks = tf.convert_to_tensor(attention_masks, dtype=tf.int32)
-    y = tf.convert_to_tensor(y, dtype=tf.int32)
+def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10): 
+    # Ensure the data is in TensorFlow tensor format, if not convert it
+    if not isinstance(input_ids, tf.Tensor):
+        input_ids = tf.convert_to_tensor(input_ids.values, dtype=tf.int32)
+    if not isinstance(attention_masks, tf.Tensor):
+        attention_masks = tf.convert_to_tensor(attention_masks.values, dtype=tf.int32)
+    if not isinstance(y, tf.Tensor):
+        y = tf.convert_to_tensor(y.values, dtype=tf.int32)
+
+    # Convert tensors to numpy for sklearn compatibility
+    input_ids_np = input_ids.numpy()
+    attention_masks_np = attention_masks.numpy()
+    y_np = y.numpy()
 
     # Splitting the data
     X_train_ids, X_test_ids, X_train_masks, X_test_masks, y_train, y_test = train_test_split(
-        input_ids, attention_masks, y, test_size=0.2, random_state=69
+        input_ids_np, attention_masks_np, y_np, test_size=0.2, random_state=69
     )
 
-    # Early stopping to monitor the validation loss
-    early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+    # Early stopping to monitor the validation loss and stop training when it starts to increase
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
     # Training the model
     history = model.fit(
@@ -63,20 +70,20 @@ def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10):
         verbose=1
     )
     
-    # Evaluate and plot model performance
     print("\nModel Performance on Test Set:")
     model.evaluate([X_test_ids, X_test_masks], y_test)
 
-    # Generate predictions for plotting
-    y_pred_proba = model.predict([X_test_ids, X_test_masks])
-    classes = np.unique(y)
-    y_test_binarized = label_binarize(y_test, classes=classes)
+    # Predicting the test set
+    y_pred = model.predict([X_test_ids, X_test_masks], batch_size=batch_size)
+    y_pred_classes = np.argmax(y_pred, axis=1)  # Convert probabilities to class labels
 
-    plot_metrics.plot_roc_curves("BERT Model", classes, y_test_binarized, y_pred_proba)
-    plot_metrics.plot_precision_recall_curves("BERT Model", classes, y_test_binarized, y_pred_proba)
+    # Computing the confusion matrix
+    cm = confusion_matrix(y_test, y_pred_classes)
+    print("\nConfusion Matrix:")
+    print(cm)
 
 def main():
-    file_path = './uci-news-aggregator_very_small.csv'
+    file_path = './uci-news-aggregator_small.csv'
     data = preprocess.load_data(file_path)
     data = preprocess.clean_missing_values(data)
     data = preprocess.normalize_text(data)
@@ -92,3 +99,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+'''
+Confusion Matrix:
+[[9 5 0 0]
+ [0 5 0 0]
+ [2 2 1 0]
+ [1 1 0 0]]
+'''

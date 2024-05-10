@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Embedding, Conv1D, GlobalMaxPooling1D, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from keras_tuner import RandomSearch
-import preprocess
+import preprocess_cnn
 from sklearn.model_selection import train_test_split
 
 def prepare_data(X, max_length=512):
@@ -68,9 +68,9 @@ def tune_model(X, y, input_length):
 
 def main():
     file_path = './uci-news-aggregator_small.csv'
-    data = preprocess.load_data(file_path)
-    data = preprocess.clean_missing_values(data)
-    data['TITLE'] = data['TITLE'].apply(preprocess.normalize_text)
+    data = preprocess_cnn.load_data(file_path)
+    data = preprocess_cnn.clean_missing_values(data)
+    data['TITLE'] = data['TITLE'].apply(preprocess_cnn.normalize_text)
     
     X, word_index = prepare_data(data['TITLE'])
     y = data['CATEGORY'].astype('category').cat.codes
