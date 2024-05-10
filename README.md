@@ -6,7 +6,8 @@ This project involves building and comparing machine learning models to classify
 
 - `exploration.py`: Script for exploring and analyzing the dataset.
 - `ml_baseline.py`: Script for training baseline machine learning models and tuning them using grid search.
-- `ml_cnn.py`: Script for building and training a CNN model integrated with BERT for advanced text classification **(VERY INTENSIVE)**.
+- `ml_bert.py`: Script for building and training a CNN model integrated with BERT for advanced text classification **(VERY INTENSIVE)**.
+- `ml_cnn.py`: Script for building and training a CNN model without BERT integration for advanced text classification.
 - `preprocess.py`: Utility script for data preprocessing including text normalization and feature extraction.
 - `subset.py`: Utility script to create a smaller subset of the dataset for quicker training.
 - `plot_metrics.py`: Functions to plot ROC and Precision-Recall curves for a classification model.
@@ -56,7 +57,7 @@ pip install pandas scikit-learn tensorflow transformers
    ```
    Trains a deep learning model using Convolutional Neural Networks without BERT.
 
-6. **CNN with BERT Model**:
+6. **CNN with BERT Integration**:
    ```bash
    python ml_bert.py
    ```
