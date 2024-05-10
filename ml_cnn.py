@@ -50,3 +50,29 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+'''
+Epoch 1/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 8s 18ms/step - accuracy: 0.3213 - loss: 1.3624 - val_accuracy: 0.3639 - val_loss: 1.3214
+Epoch 2/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 19ms/step - accuracy: 0.3482 - loss: 1.3153 - val_accuracy: 0.3639 - val_loss: 1.3131
+Epoch 3/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 18ms/step - accuracy: 0.3581 - loss: 1.2899 - val_accuracy: 0.3639 - val_loss: 1.3034
+Epoch 4/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 18ms/step - accuracy: 0.3700 - loss: 1.2683 - val_accuracy: 0.3698 - val_loss: 1.2789
+Epoch 5/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 17ms/step - accuracy: 0.4956 - loss: 1.2075 - val_accuracy: 0.5266 - val_loss: 1.2263
+Epoch 6/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 18ms/step - accuracy: 0.6988 - loss: 1.1017 - val_accuracy: 0.6450 - val_loss: 1.1177
+Epoch 7/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 18ms/step - accuracy: 0.8020 - loss: 0.9257 - val_accuracy: 0.7189 - val_loss: 0.9718
+Epoch 8/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 19ms/step - accuracy: 0.8486 - loss: 0.7195 - val_accuracy: 0.7337 - val_loss: 0.8374
+Epoch 9/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 18ms/step - accuracy: 0.8574 - loss: 0.5589 - val_accuracy: 0.7337 - val_loss: 0.7448
+Epoch 10/10
+381/381 ━━━━━━━━━━━━━━━━━━━━ 7s 19ms/step - accuracy: 0.8726 - loss: 0.4169 - val_accuracy: 0.7456 - val_loss: 0.6879
+
+Model Performance on Test Set:
+27/27 ━━━━━━━━━━━━━━━━━━━━ 0s 9ms/step - accuracy: 0.7577 - loss: 0.6570
+'''
