@@ -6,6 +6,7 @@ from transformers import BertTokenizer, TFBertModel, DistilBertTokenizer, TFDist
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import confusion_matrix
+import plot_metrics
 
 def prepare_data(X, tokenizer, max_length=512):
     # Tokenizing the text data
@@ -34,11 +35,13 @@ def build_model(bert_model, learning_rate=5e-5):
     # Construct the model
     model = tf.keras.Model(inputs=[input_ids, attention_masks], outputs=output)
     model.compile(optimizer=Adam(learning_rate=learning_rate), 
-                  loss='sparse_categorical_crossentropy', 
+                  loss='categorical_crossentropy', 
                   metrics=['accuracy'])
     return model
 
-def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10): 
+from sklearn.preprocessing import label_binarize
+
+def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10):
     # Ensure the data is in TensorFlow tensor format, if not convert it
     if not isinstance(input_ids, tf.Tensor):
         input_ids = tf.convert_to_tensor(input_ids.values, dtype=tf.int32)
@@ -57,6 +60,11 @@ def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10):
         input_ids_np, attention_masks_np, y_np, test_size=0.2, random_state=69
     )
 
+    # Convert labels to one-hot encoding
+    classes = np.unique(y_np)
+    y_train = label_binarize(y_train, classes=classes)
+    y_test_binarized = label_binarize(y_test, classes=classes)
+
     # Early stopping to monitor the validation loss and stop training when it starts to increase
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
@@ -71,16 +79,20 @@ def train_model(input_ids, attention_masks, y, model, batch_size=8, epochs=10):
     )
     
     print("\nModel Performance on Test Set:")
-    model.evaluate([X_test_ids, X_test_masks], y_test)
+    model.evaluate([X_test_ids, X_test_masks], y_test_binarized)
 
     # Predicting the test set
-    y_pred = model.predict([X_test_ids, X_test_masks], batch_size=batch_size)
-    y_pred_classes = np.argmax(y_pred, axis=1)  # Convert probabilities to class labels
+    y_pred_proba = model.predict([X_test_ids, X_test_masks], batch_size=batch_size)
 
     # Computing the confusion matrix
+    y_pred_classes = np.argmax(y_pred_proba, axis=1)
     cm = confusion_matrix(y_test, y_pred_classes)
     print("\nConfusion Matrix:")
     print(cm)
+
+    # Plot ROC and Precision-Recall Curves
+    plot_metrics.plot_roc_curves("BERT Model", classes, y_test_binarized, y_pred_proba)
+    plot_metrics.plot_precision_recall_curves("BERT Model", classes, y_test_binarized, y_pred_proba)
 
 def main():
     file_path = './uci-news-aggregator_small.csv'
@@ -99,11 +111,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-'''
-Confusion Matrix:
-[[173  14   4  30]
- [ 11 286   1  11]
- [  8  17  61   5]
- [ 29  18   6 171]]
-'''
