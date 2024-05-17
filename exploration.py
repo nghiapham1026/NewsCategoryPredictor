@@ -4,9 +4,11 @@ import nltk
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
+# Download NLTK resources (run once)
 nltk.download('punkt')
 
 def load_and_inspect_data(file_path):
+    # Load dataset from a CSV file
     data = pd.read_csv(file_path)
     
     # Display basic information about the dataset
@@ -39,8 +41,8 @@ def perform_statistical_summaries(data):
 
     # Tokenize titles and calculate word frequency
     title_words = data['TITLE'].apply(word_tokenize)  # Tokenize each title
-    all_words = [word for sublist in title_words for word in sublist]
-    word_counts = Counter(all_words)
+    all_words = [word for sublist in title_words for word in sublist]  # Flatten the list of lists
+    word_counts = Counter(all_words)  # Count frequency of each word
     
     # Get top 3 most frequent words
     top_words = word_counts.most_common(3)  # Get top 3 most common words

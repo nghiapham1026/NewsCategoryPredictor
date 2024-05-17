@@ -11,6 +11,7 @@ from sklearn.pipeline import Pipeline
 import numpy as np
 
 def train_and_tune_models(X, y):
+    # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     classes = np.unique(y)
     y_test_binarized = label_binarize(y_test, classes=classes)
@@ -29,32 +30,34 @@ def train_and_tune_models(X, y):
         'clf__kernel': ['linear', 'rbf']
     }
 
+    # Define models with their pipelines and hyperparameter grids
     models = {
         'Logistic Regression': {
             'pipeline': Pipeline([
-                ('vect', TfidfVectorizer()),
-                ('scaler', StandardScaler(with_mean=False)),
-                ('clf', LogisticRegression(max_iter=1000, class_weight='balanced'))
+                ('vect', TfidfVectorizer()),  # Text vectorization
+                ('scaler', StandardScaler(with_mean=False)),  # Standardize features
+                ('clf', LogisticRegression(max_iter=1000, class_weight='balanced'))  # Logistic Regression classifier
             ]),
             'params': param_grid_lr
         },
         'Decision Tree': {
             'pipeline': Pipeline([
-                ('vect', TfidfVectorizer()),
-                ('clf', DecisionTreeClassifier(class_weight='balanced'))
+                ('vect', TfidfVectorizer()),  # Text vectorization
+                ('clf', DecisionTreeClassifier(class_weight='balanced'))  # Decision Tree classifier
             ]),
             'params': param_grid_dt
         },
         'Support Vector Machine': {
             'pipeline': Pipeline([
-                ('vect', TfidfVectorizer()),
-                ('scaler', StandardScaler(with_mean=False)),
-                ('clf', SVC(class_weight='balanced', probability=True))
+                ('vect', TfidfVectorizer()),  # Text vectorization
+                ('scaler', StandardScaler(with_mean=False)),  # Standardize features
+                ('clf', SVC(class_weight='balanced', probability=True))  # SVM classifier
             ]),
             'params': param_grid_svc
         }
     }
 
+    # Train and tune each model using GridSearchCV
     for name, info in models.items():
         grid_search = GridSearchCV(info['pipeline'], info['params'], cv=5, scoring='accuracy', n_jobs=-1)
         grid_search.fit(X_train, y_train)
@@ -62,11 +65,12 @@ def train_and_tune_models(X, y):
         y_pred = best_model.predict(X_test)
         y_pred_proba = best_model.predict_proba(X_test) if hasattr(best_model.named_steps['clf'], 'predict_proba') else None
 
-        # Call to plot_metrics with model name
+        # Plot ROC and Precision-Recall curves if probability predictions are available
         if y_pred_proba is not None:
             plot_metrics.plot_roc_curves(name, classes, y_test_binarized, y_pred_proba)
             plot_metrics.plot_precision_recall_curves(name, classes, y_test_binarized, y_pred_proba)
         
+        # Print model performance and best parameters
         print(f"{name} Model Performance (Grid Search Tuning):")
         print(classification_report(y_test, y_pred))
         print("Best Parameters:", grid_search.best_params_)
@@ -74,12 +78,12 @@ def train_and_tune_models(X, y):
 
 def main():
     file_path = './uci-news-aggregator_very_small.csv'
-    data = preprocess.load_data(file_path)
-    data = preprocess.clean_missing_values(data)
-    data['TITLE'] = data['TITLE'].apply(preprocess.normalize_text)  # Apply text normalization
-    X = data['TITLE']  # Using TITLE as the input feature
-    y = data['CATEGORY']  # CATEGORY as the target
-    train_and_tune_models(X, y)
+    data = preprocess.load_data(file_path)  # Load the dataset
+    data = preprocess.clean_missing_values(data)  # Clean missing values
+    data['TITLE'] = data['TITLE'].apply(preprocess.normalize_text)  # Normalize text data
+    X = data['TITLE']  # Use TITLE as the input feature
+    y = data['CATEGORY']  # Use CATEGORY as the target
+    train_and_tune_models(X, y)  # Train and tune models
 
 if __name__ == '__main__':
     main()
